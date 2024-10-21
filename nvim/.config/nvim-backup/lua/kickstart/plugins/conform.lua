@@ -1,7 +1,6 @@
 return {
   { -- Autoformat
     'stevearc/conform.nvim',
-    tag = 'v8.0.0',
     enabled = true,
     lazy = false,
     keys = {
@@ -11,14 +10,13 @@ return {
       require('conform').setup {
         notify_on_error = false,
         format_on_save = {
-          timeout_ms = 1500,
+          timeout_ms = 500,
           lsp_fallback = true,
         },
         formatters_by_ft = {
           lua = { 'mystylua' },
           python = { 'isort', 'black' },
           quarto = { 'injected' },
-          json = { 'prettier', 'prettierd' },
         },
         formatters = {
           mystylua = {
@@ -56,5 +54,5 @@ return {
         },
       }
     end,
-  },
+  }
 }

@@ -12,7 +12,8 @@ return {
       vim.cmd [[
       function! _EscapeText_quarto(text)
       if slime#config#resolve("python_ipython") && len(split(a:text,"\n")) > 1
-      return ["%cpaste -q\n", slime#config#resolve("dispatch_ipython_pause"), a:text, "--\n"]
+      " return ["%cpaste -q\n", slime#config#resolve("dispatch_ipython_pause"), a:text, "--\n"]
+      return [a:text, "\n"]
       else
       let empty_lines_pat = '\(^\|\n\)\zs\(\s*\n\+\)\+'
       let no_empty_lines = substitute(a:text, empty_lines_pat, "", "g")
@@ -30,5 +31,5 @@ return {
         vim.cmd [[ call slime#send_cell() ]]
       end, { desc = 'send code cell to terminal' })
     end,
-  }
+  },
 }

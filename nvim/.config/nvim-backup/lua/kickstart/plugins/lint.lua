@@ -8,14 +8,14 @@ return {
       lint.linters_by_ft = {
         -- python = { 'mypy' },
         -- typescript = { 'eslint_d' },
-        javascriptreact = { 'eslint_d' },
+        -- javascriptreact = { 'eslint_d' },
         -- typescriptreact = { 'eslint_d' },
         -- svelte = { 'eslint_d' },
         -- kotlin = { 'ktlint' },
         -- terraform = { 'tflint' },
         -- ruby = { 'standardrb' },
         dockerfile = { 'hadolint' },
-        -- json = { 'jsonlint' },
+        json = { 'jsonlint' },
       }
 
       -- Create autocommand which carries out the actual linting

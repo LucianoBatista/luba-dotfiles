@@ -53,11 +53,9 @@ require('lazy').setup({
 
   require 'kickstart.plugins.web-dev-icons',
 
-  require 'kickstart.plugins.database',
+  require 'kickstart.plugins.wich-key',
 
   require 'kickstart.plugins.render-markdown',
-
-  require 'kickstart.plugins.image',
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
