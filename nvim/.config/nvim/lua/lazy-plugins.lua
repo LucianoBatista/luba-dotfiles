@@ -60,7 +60,7 @@ require("lazy").setup({
 
   require 'kickstart.plugins.image',
 
-  require("kickstart.plugins.wich-key"),
+  -- require("kickstart.plugins.wich-key"),
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
