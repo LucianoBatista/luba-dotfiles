@@ -110,8 +110,11 @@ fi
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias vi="nvim"
 alias pyv="pip index versions"
+
+
 # alias tmux="TERM=xterm-256color tmux"
 eval "$(starship init zsh)"
 
 # Created by `pipx` on 2024-08-05 07:22:31
 export PATH="$PATH:/home/luba/.local/bin"
+

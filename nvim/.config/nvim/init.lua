@@ -1,28 +1,28 @@
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
 
 -- Set to true if you have a Nerd Font installed
 vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
-require 'options'
+require("options")
 
 -- [[ Basic Keymaps ]]
-require 'keymaps'
+require("keymaps")
 
-vim.cmd [[
+vim.cmd([[
 augroup pencil
   autocmd!
   autocmd FileType markdown,mkd call pencil#init()
   autocmd FileType text         call pencil#init()
 augroup END
-]]
+]])
 
 -- [[ Install `lazy.nvim` plugin manager ]]
-require 'lazy-bootstrap'
+require("lazy-bootstrap")
 
 -- [[ Configure and install plugins ]]
 --
@@ -34,4 +34,4 @@ require 'lazy-bootstrap'
 --  To update plugins you can run
 --    :Lazy update
 --
-require 'lazy-plugins'
+require("lazy-plugins")
