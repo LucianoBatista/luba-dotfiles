@@ -3,8 +3,8 @@ return {
     'evanpurkhiser/image-paste.nvim',
     config = function()
       require('image-paste').setup {
-        imgur_client_id = os.getenv('IMGUR_CLIENT_ID'),
-        paste_script = [[xclip -selection clipboard -t image/png -o]],
+        imgur_client_id = '9e175315e657a12',
+        paste_script = [[pngpaste -]],
       }
     end,
     keys = {
@@ -17,5 +17,5 @@ return {
         desc = 'Paste image from clipboard',
       },
     },
-  }
+  },
 }
