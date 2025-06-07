@@ -63,3 +63,15 @@ vim.api.nvim_create_autocmd('TermOpen', {
     vim.wo.number = false
   end,
 })
+
+-- CodeCompanion
+vim.keymap.set({ 'n', 'v' }, '<C-a>', '<cmd>CodeCompanionActions<cr>', { noremap = true, silent = true })
+vim.keymap.set({ 'n', 'v' }, '<LocalLeader>a', '<cmd>CodeCompanionChat Toggle<cr>', { noremap = true, silent = true })
+vim.keymap.set('n', '<leader>cd', function()
+  vim.cmd 'normal! ggVG'
+  vim.cmd 'CodeCompanion /docs'
+end, { desc = 'Document current file' })
+vim.keymap.set('v', 'ga', '<cmd>CodeCompanionChat Add<cr>', { noremap = true, silent = true })
+
+-- Expand 'cc' into 'CodeCompanion' in the command line
+vim.cmd [[cab cc CodeCompanion]]

@@ -48,9 +48,9 @@ require('lazy').setup({
 
   require 'kickstart.plugins.copilot',
 
-  require 'kickstart.plugins.copilot-chat',
+  -- require 'kickstart.plugins.copilot-chat',
 
-  -- require("kickstart.plugins.octo"),
+  require 'kickstart.plugins.octo',
 
   require 'kickstart.plugins.web-dev-icons',
 
@@ -59,6 +59,11 @@ require('lazy').setup({
   require 'kickstart.plugins.render-markdown',
 
   require 'kickstart.plugins.image',
+
+  require 'kickstart.plugins.codecompanion',
+
+  require 'kickstart.plugins.mini-diff',
+  require 'kickstart.plugins.mcphub',
 
   -- require("kickstart.plugins.wich-key"),
 }, {

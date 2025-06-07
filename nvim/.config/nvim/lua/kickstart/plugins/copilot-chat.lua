@@ -29,7 +29,7 @@ return {
       { 'nvim-lua/plenary.nvim' },
     },
     opts = {
-      model = 'claude-3.7-sonnet',
+      model = 'claude-sonnet-4',
       highlight_selection = true,
       question_header = '## User ',
       answer_header = '## Copilot ',

@@ -8,7 +8,7 @@ return {
       { -- nice loading notifications
         -- PERF: but can slow down startup
         'j-hui/fidget.nvim',
-        enabled = false,
+        enabled = true,
         opts = {},
       },
       {
@@ -52,6 +52,8 @@ return {
           'isort',
           'tree-sitter-cli',
           'jupytext',
+          'ruff',
+          'ty',
         },
       }
 
@@ -67,6 +69,11 @@ return {
 
           local client = vim.lsp.get_client_by_id(event.data.client_id)
           assert(client, 'LSP client not found')
+
+          -- Disable Ruff hover in favor of Pyright
+          if client.name == 'ruff' then
+            client.server_capabilities.hoverProvider = false
+          end
 
           ---@diagnostic disable-next-line: inject-field
           client.server_capabilities.document_formatting = true
@@ -91,6 +98,29 @@ return {
           map('<leader>lq', vim.diagnostic.setqflist, '[l]sp diagnostic [q]uickfix')
         end,
       })
+
+      -- Configure diagnostic display
+      vim.diagnostic.config {
+        virtual_text = true, -- Show diagnostics as virtual text
+        signs = true, -- Show signs in the sign column
+        underline = true, -- Underline diagnostic text
+        update_in_insert = false, -- Don't update diagnostics in insert mode
+        severity_sort = true, -- Sort by severity
+        float = {
+          border = 'rounded',
+          source = 'always', -- Show diagnostic source
+          header = '',
+          prefix = '',
+        },
+      }
+
+      -- -- Define diagnostic signs
+      local signs = { Error = '󰅚 ', Warn = '󰀪 ', Hint = '󰌶 ', Info = ' ' }
+      --
+      for type, icon in pairs(signs) do
+        local hl = 'DiagnosticSign' .. type
+        vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl })
+      end
 
       local lsp_flags = {
         allow_incremental_sync = true,
@@ -246,6 +276,20 @@ return {
         },
       }
 
+      lspconfig.ruff.setup {
+        capabilities = capabilities,
+        flags = lsp_flags,
+        init_options = {
+          settings = {
+            -- Configure Ruff settings here if needed
+            logLevel = 'info',
+            lint = {
+              select = { 'ALL' },
+            },
+          },
+        },
+      }
+
       -- lspconfig.ruff_lsp.setup {
       --   capabilities = capabilities,
       --   flags = lsp_flags,
@@ -260,23 +304,53 @@ return {
         capabilities.workspace.didChangeWatchedFiles = {}
       end
       capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = false
+      capabilities.textDocument.publishDiagnostics.tagSupport.valueSet = { 2 }
 
       lspconfig.pyright.setup {
         capabilities = capabilities,
         flags = lsp_flags,
         settings = {
+          pyright = {
+            -- Using Ruff's import organizer
+            disableOrganizeImports = true,
+          },
           python = {
             analysis = {
-              autoSearchPaths = true,
               useLibraryCodeForTypes = true,
-              diagnosticMode = 'workspace',
+              diagnosticSeverityOverrides = {
+                reportUnusedVariable = 'warning',
+              },
+              typeCheckingMode = 'off', -- Set type-checking mode to off
+              diagnosticMode = 'off', -- Disable diagnostics entirely
+              autoSearchPaths = true,
+              -- useLibraryCodeForTypes = true,
+              -- diagnosticMode = 'workspace',
+              -- Optionally ignore all files for analysis to exclusively use Ruff for linting
+              -- ignore = { '*' },
             },
           },
         },
-        root_dir = function(fname)
-          return util.root_pattern('.git', 'setup.py', 'setup.cfg', 'pyproject.toml', 'requirements.txt')(fname) or util.path.dirname(fname)
-        end,
+        -- root_dir = function(fname)
+        --   return util.root_pattern('.git', 'setup.py', 'setup.cfg', 'pyproject.toml', 'requirements.txt')(fname) or util.path.dirname(fname)
+        -- end,
       }
+
+      -- lspconfig.pyright.setup {
+      --   capabilities = capabilities,
+      --   flags = lsp_flags,
+      --   settings = {
+      --     python = {
+      --       analysis = {
+      --         autoSearchPaths = true,
+      --         useLibraryCodeForTypes = true,
+      --         diagnosticMode = 'workspace',
+      --       },
+      --     },
+      --   },
+      --   root_dir = function(fname)
+      --     return util.root_pattern('.git', 'setup.py', 'setup.cfg', 'pyproject.toml', 'requirements.txt')(fname) or util.path.dirname(fname)
+      --   end,
+      -- }
     end,
   },
 }

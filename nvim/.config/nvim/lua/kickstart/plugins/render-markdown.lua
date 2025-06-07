@@ -6,9 +6,9 @@ return {
   ---@module 'render-markdown'
   ---@type render.md.UserConfig
   opts = {
-    file_types = { 'markdown', 'quarto' },
+    file_types = { 'markdown', 'quarto', 'codecompanion' },
     render_modes = { 'n', 'c', 'i', 'v', 'V' },
-    heading = { border = true, border_virtual = true, },
+    heading = { border = true, border_virtual = true },
     callout = {
       note = { raw = '[!NOTE]', rendered = '󰋽 Note', highlight = 'RenderMarkdownInfo' },
       tip = { raw = '[!TIP]', rendered = '󰌶 Tip', highlight = 'RenderMarkdownSuccess' },
