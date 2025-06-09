@@ -22,7 +22,7 @@ customCommands:
             description: "Just documentation"
             value: "docs"
           - name: "style"
-            description: "Black stuffs"
+            description: "Formatting stuffs"
             value: "style"
           - name: "refactor"
             description: "Refactoring"

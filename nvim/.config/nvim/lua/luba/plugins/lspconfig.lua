@@ -32,7 +32,7 @@ return {
 
       require('mason').setup()
       require('mason-lspconfig').setup {
-        automatic_installation = true,
+        automatic_installation = false,
       }
       require('mason-tool-installer').setup {
         ensure_installed = {
@@ -42,7 +42,6 @@ return {
           'jupytext',
           'ruff',
           'ty',
-          'jedi_language_server',
         },
       }
 
@@ -59,9 +58,13 @@ return {
           local client = vim.lsp.get_client_by_id(event.data.client_id)
           assert(client, 'LSP client not found')
 
+          -- Debug: Log which client is attaching to which buffer
+          print(string.format('LSP %s attached to buffer %d', client.name, event.buf))
+
           -- Disable Ruff hover in favor of Pyright
           if client.name == 'ruff' then
-            client.server_capabilities.hoverProvider = false
+            print(string.format('Ruff LSP attached to buffer %d with diagnostics: %s', event.buf, tostring(client.server_capabilities.diagnosticProvider)))
+            client.server_capabilities.hoverProvider = true
           end
 
           if client.name == 'ty' then
@@ -87,7 +90,7 @@ return {
           map(']d', function()
             vim.diagnostic.jump { count = -1 }
           end, 'next [d]iagnostic ')
-          map('<leader>ll', vim.lsp.codelens.run, '[l]ens run')
+          -- map('<leader>ll', vim.lsp.codelens.run, '[l]ens run')
           map('<leader>lR', vim.lsp.buf.rename, '[l]sp [R]ename')
           map('<leader>lf', vim.lsp.buf.format, '[l]sp [f]ormat')
           vmap('<leader>lf', vim.lsp.buf.format, '[l]sp [f]ormat')
@@ -123,13 +126,7 @@ return {
         debounce_text_changes = 150,
       }
 
-      -- vim.lsp.handlers['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, { border = require('misc.style').border })
-      -- vim.lsp.handlers['textDocument/signatureHelp'] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = require('misc.style').border })
-      -- require('lspconfig.ui.windows').default_options.border = 'single'
-
-      local capabilities = vim.lsp.protocol.make_client_capabilities()
-      -- capabilities = vim.tbl_deep_extend('force', capabilities, require('blink.cmp').default_capabilities())
-      capabilities.textDocument.completion.completionItem.snippetSupport = true
+      local capabilities = require('blink.cmp').get_lsp_capabilities({}, true)
 
       -- also needs:
       -- $home/.config/marksman/config.toml :
@@ -249,19 +246,6 @@ return {
         filetypes = { 'sh', 'bash' },
       }
 
-      -- Add additional languages here.
-      -- See `:h lspconfig-all` for the configuration.
-      -- Like e.g. Haskell:
-      -- lspconfig.hls.setup {
-      --   capabilities = capabilities,
-      --   flags = lsp_flags
-      -- }
-
-      -- lspconfig.clangd.setup {
-      --   capabilities = capabilities,
-      --   flags = lsp_flags,
-      -- }
-
       lspconfig.rust_analyzer.setup {
         capabilities = capabilities,
         settings = {
@@ -276,108 +260,18 @@ return {
       lspconfig.ruff.setup {
         capabilities = capabilities,
         flags = lsp_flags,
+        root_dir = util.root_pattern('pyproject.toml', 'ruff.toml', '.ruff.toml', 'setup.py', 'setup.cfg', 'requirements.txt', '.git'),
         init_options = {
           settings = {
             -- Configure Ruff settings here if needed
             logLevel = 'info',
             lint = {
               select = { 'ALL' },
-              ignore = { 'D100', 'INP001' },
+              ignore = { 'D100', 'INP001', 'B008' },
             },
           },
         },
       }
-
-      -- lspconfig.jedi_language_server.setup {
-      --   capabilities = capabilities,
-      --   init_options = {
-      --     completion = {
-      --       disableSnippets = true,
-      --     },
-      --   },
-      -- }
-
-      -- lspconfig.ruff_lsp.setup {
-      --   capabilities = capabilities,
-      --   flags = lsp_flags,
-      -- }
-
-      -- See https://github.com/neovim/neovim/issues/23291
-      -- disable lsp watcher.
-      -- Too lags on linux for python projects
-      -- because pyright and nvim both create too many watchers otherwise
-      -- if capabilities.workspace == nil then
-      --   capabilities.workspace = {}
-      --   capabilities.workspace.didChangeWatchedFiles = {}
-      -- end
-      -- capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = false
-      -- capabilities.textDocument.publishDiagnostics.tagSupport.valueSet = { 2 }
-
-      -- lspconfig.pyright.setup {
-      --   capabilities = (function()
-      --     local capabilities = vim.lsp.protocol.make_client_capabilities()
-      --     capabilities.textDocument.publishDiagnostics.tagSupport.valueSet = { 2 }
-      --     return capabilities
-      --   end)(),
-      --   settings = {
-      --     python = {
-      --       analysis = {
-      --         useLibraryCodeForTypes = true,
-      --         diagnosticSeverityOverrides = {
-      --           reportUnusedVariable = 'warning',
-      --         },
-      --         typeCheckingMode = 'off', -- Set type-checking mode to off
-      --         diagnosticMode = 'off', -- Disable diagnostics entirely
-      --       },
-      --     },
-      --   },
-      -- }
-
-      -- lspconfig.pyright.setup {
-      --   capabilities = capabilities,
-      --   flags = lsp_flags,
-      --   settings = {
-      --     pyright = {
-      --       -- Using Ruff's import organizer
-      --       disableOrganizeImports = true,
-      --     },
-      --     python = {
-      --       analysis = {
-      --         useLibraryCodeForTypes = false,
-      --         diagnosticSeverityOverrides = {
-      --           reportUnusedVariable = 'warning',
-      --         },
-      --         typeCheckingMode = 'off', -- Set type-checking mode to off
-      --         diagnosticMode = 'off', -- Disable diagnostics entirely
-      --         -- autoSearchPaths = true,
-      --         -- useLibraryCodeForTypes = true,
-      --         -- diagnosticMode = 'workspace',
-      --         -- Optionally ignore all files for analysis to exclusively use Ruff for linting
-      --         -- ignore = { '*' },
-      --       },
-      --     },
-      --   },
-      --   -- root_dir = function(fname)
-      --   --   return util.root_pattern('.git', 'setup.py', 'setup.cfg', 'pyproject.toml', 'requirements.txt')(fname) or util.path.dirname(fname)
-      --   -- end,
-      -- }
-
-      -- lspconfig.pyright.setup {
-      --   capabilities = capabilities,
-      --   flags = lsp_flags,
-      --   settings = {
-      --     python = {
-      --       analysis = {
-      --         autoSearchPaths = true,
-      --         useLibraryCodeForTypes = true,
-      --         diagnosticMode = 'workspace',
-      --       },
-      --     },
-      --   },
-      --   root_dir = function(fname)
-      --     return util.root_pattern('.git', 'setup.py', 'setup.cfg', 'pyproject.toml', 'requirements.txt')(fname) or util.path.dirname(fname)
-      --   end,
-      -- }
     end,
   },
 }
