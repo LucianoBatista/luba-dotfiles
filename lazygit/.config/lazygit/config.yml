@@ -53,7 +53,7 @@ customCommands:
         options:
           - name: '(empty)'
             description: ''
-            value: ''
+            value: '.'
           - name: ':ambulance:'
             description: '(fix)🚑Critical bug fix'
             value: ':ambulance:'
