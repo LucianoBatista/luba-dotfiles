@@ -5,6 +5,7 @@ return {
       { 'williamboman/mason.nvim' },
       { 'williamboman/mason-lspconfig.nvim' },
       { 'WhoIsSethDaniel/mason-tool-installer.nvim' },
+      { 'saghen/blink.cmp' },
       { -- nice loading notifications
         -- PERF: but can slow down startup
         'j-hui/fidget.nvim',
@@ -23,17 +24,6 @@ return {
         },
       },
       { 'Bilal2453/luvit-meta', lazy = true }, -- optional `vim.uv` typings
-      { -- optional completion source for require statements and module annotations
-        'hrsh7th/nvim-cmp',
-        opts = function(_, opts)
-          opts.sources = opts.sources or {}
-          table.insert(opts.sources, {
-            name = 'lazydev',
-            group_index = 0, -- set group index to 0 to skip loading LuaLS completions
-          })
-        end,
-      },
-      -- { "folke/neodev.nvim", enabled = false }, -- make sure to uninstall or disable neodev.nvim
       { 'folke/neoconf.nvim', opts = {}, enabled = false },
     },
     config = function()
@@ -46,19 +36,18 @@ return {
       }
       require('mason-tool-installer').setup {
         ensure_installed = {
-          'black',
           'stylua',
           'shfmt',
-          'isort',
           'tree-sitter-cli',
           'jupytext',
           'ruff',
           'ty',
+          'jedi_language_server',
         },
       }
 
       vim.api.nvim_create_autocmd('LspAttach', {
-        group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
+        group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
         callback = function(event)
           local function map(keys, func, desc)
             vim.keymap.set('n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
@@ -75,13 +64,20 @@ return {
             client.server_capabilities.hoverProvider = false
           end
 
+          if client.name == 'ty' then
+            client.server_capabilities.hoverProvider = false
+          end
+
           ---@diagnostic disable-next-line: inject-field
           client.server_capabilities.document_formatting = true
 
           map('gS', vim.lsp.buf.document_symbol, '[g]o so [S]ymbols')
           map('gD', vim.lsp.buf.type_definition, '[g]o to type [D]efinition')
           map('gd', vim.lsp.buf.definition, '[g]o to [d]efinition')
-          map('K', vim.lsp.buf.hover, '[K] hover documentation')
+          map('K', function()
+            vim.lsp.buf.hover { border = 'single', max_height = 25, max_width = 120 }
+          end, '[K] hover documentation')
+          -- map('K', vim.lsp.buf.hover, '[K] hover documentation')
           map('gh', vim.lsp.buf.signature_help, '[g]o to signature [h]elp')
           map('gI', vim.lsp.buf.implementation, '[g]o to [I]mplementation')
           map('gr', vim.lsp.buf.references, '[g]o to [r]eferences')
@@ -128,10 +124,11 @@ return {
       }
 
       -- vim.lsp.handlers['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, { border = require('misc.style').border })
-      --vim.lsp.handlers['textDocument/signatureHelp'] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = require('misc.style').border })
+      -- vim.lsp.handlers['textDocument/signatureHelp'] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = require('misc.style').border })
+      -- require('lspconfig.ui.windows').default_options.border = 'single'
 
       local capabilities = vim.lsp.protocol.make_client_capabilities()
-      capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+      -- capabilities = vim.tbl_deep_extend('force', capabilities, require('blink.cmp').default_capabilities())
       capabilities.textDocument.completion.completionItem.snippetSupport = true
 
       -- also needs:
@@ -285,10 +282,20 @@ return {
             logLevel = 'info',
             lint = {
               select = { 'ALL' },
+              ignore = { 'D100', 'INP001' },
             },
           },
         },
       }
+
+      -- lspconfig.jedi_language_server.setup {
+      --   capabilities = capabilities,
+      --   init_options = {
+      --     completion = {
+      --       disableSnippets = true,
+      --     },
+      --   },
+      -- }
 
       -- lspconfig.ruff_lsp.setup {
       --   capabilities = capabilities,
@@ -299,41 +306,61 @@ return {
       -- disable lsp watcher.
       -- Too lags on linux for python projects
       -- because pyright and nvim both create too many watchers otherwise
-      if capabilities.workspace == nil then
-        capabilities.workspace = {}
-        capabilities.workspace.didChangeWatchedFiles = {}
-      end
-      capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = false
-      capabilities.textDocument.publishDiagnostics.tagSupport.valueSet = { 2 }
+      -- if capabilities.workspace == nil then
+      --   capabilities.workspace = {}
+      --   capabilities.workspace.didChangeWatchedFiles = {}
+      -- end
+      -- capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = false
+      -- capabilities.textDocument.publishDiagnostics.tagSupport.valueSet = { 2 }
 
-      lspconfig.pyright.setup {
-        capabilities = capabilities,
-        flags = lsp_flags,
-        settings = {
-          pyright = {
-            -- Using Ruff's import organizer
-            disableOrganizeImports = true,
-          },
-          python = {
-            analysis = {
-              useLibraryCodeForTypes = true,
-              diagnosticSeverityOverrides = {
-                reportUnusedVariable = 'warning',
-              },
-              typeCheckingMode = 'off', -- Set type-checking mode to off
-              diagnosticMode = 'off', -- Disable diagnostics entirely
-              autoSearchPaths = true,
-              -- useLibraryCodeForTypes = true,
-              -- diagnosticMode = 'workspace',
-              -- Optionally ignore all files for analysis to exclusively use Ruff for linting
-              -- ignore = { '*' },
-            },
-          },
-        },
-        -- root_dir = function(fname)
-        --   return util.root_pattern('.git', 'setup.py', 'setup.cfg', 'pyproject.toml', 'requirements.txt')(fname) or util.path.dirname(fname)
-        -- end,
-      }
+      -- lspconfig.pyright.setup {
+      --   capabilities = (function()
+      --     local capabilities = vim.lsp.protocol.make_client_capabilities()
+      --     capabilities.textDocument.publishDiagnostics.tagSupport.valueSet = { 2 }
+      --     return capabilities
+      --   end)(),
+      --   settings = {
+      --     python = {
+      --       analysis = {
+      --         useLibraryCodeForTypes = true,
+      --         diagnosticSeverityOverrides = {
+      --           reportUnusedVariable = 'warning',
+      --         },
+      --         typeCheckingMode = 'off', -- Set type-checking mode to off
+      --         diagnosticMode = 'off', -- Disable diagnostics entirely
+      --       },
+      --     },
+      --   },
+      -- }
+
+      -- lspconfig.pyright.setup {
+      --   capabilities = capabilities,
+      --   flags = lsp_flags,
+      --   settings = {
+      --     pyright = {
+      --       -- Using Ruff's import organizer
+      --       disableOrganizeImports = true,
+      --     },
+      --     python = {
+      --       analysis = {
+      --         useLibraryCodeForTypes = false,
+      --         diagnosticSeverityOverrides = {
+      --           reportUnusedVariable = 'warning',
+      --         },
+      --         typeCheckingMode = 'off', -- Set type-checking mode to off
+      --         diagnosticMode = 'off', -- Disable diagnostics entirely
+      --         -- autoSearchPaths = true,
+      --         -- useLibraryCodeForTypes = true,
+      --         -- diagnosticMode = 'workspace',
+      --         -- Optionally ignore all files for analysis to exclusively use Ruff for linting
+      --         -- ignore = { '*' },
+      --       },
+      --     },
+      --   },
+      --   -- root_dir = function(fname)
+      --   --   return util.root_pattern('.git', 'setup.py', 'setup.cfg', 'pyproject.toml', 'requirements.txt')(fname) or util.path.dirname(fname)
+      --   -- end,
+      -- }
 
       -- lspconfig.pyright.setup {
       --   capabilities = capabilities,

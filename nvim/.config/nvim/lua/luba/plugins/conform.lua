@@ -16,8 +16,10 @@ return {
         },
         formatters_by_ft = {
           lua = { 'mystylua' },
-          python = { 'isort', 'black' },
+          -- this do not works like on lsp, we need to type like this
+          python = { 'ruff_fix', 'ruff_format' },
           quarto = { 'injected' },
+          markdown = { 'injected' },
           json = { 'prettier', 'prettierd' },
         },
         formatters = {
