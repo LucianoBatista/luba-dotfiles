@@ -108,6 +108,57 @@ return {
       vim.keymap.set('n', '<leader>sn', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
+
+      -- Vulture dead code analysis integration (quickfix)
+      local function vulture_dead_code_quickfix(confidence_level)
+        confidence_level = confidence_level or '70'
+        
+        local cmd = string.format('vulture . --min-confidence %s --exclude .venv,__pycache__,.git,node_modules', confidence_level)
+        local output = vim.fn.system(cmd)
+        
+        local qf_list = {}
+        for line in output:gmatch('[^\r\n]+') do
+          if line ~= '' then
+            -- Parse vulture output format: filename:line: message
+            local filename, lnum, message = line:match('^([^:]+):(%d+): (.*)$')
+            if filename and lnum and message then
+              table.insert(qf_list, {
+                filename = filename,
+                lnum = tonumber(lnum),
+                col = 1,
+                text = message,
+              })
+            end
+          end
+        end
+        
+        vim.fn.setqflist(qf_list, 'r')
+        vim.cmd('copen')
+        print(string.format('Found %d dead code issues (%s%% confidence)', #qf_list, confidence_level))
+      end
+
+      -- Dead code analysis with selectable confidence levels
+      local function vulture_analysis_levels()
+        local levels = {
+          { name = 'High Confidence (80%)', confidence = '80' },
+          { name = 'Medium Confidence (70%)', confidence = '70' },
+          { name = 'Low Confidence (60%)', confidence = '60' },
+          { name = 'Very Low Confidence (40%)', confidence = '40' },
+        }
+        
+        vim.ui.select(levels, {
+          prompt = 'Select confidence level for dead code analysis:',
+          format_item = function(item) return item.name end,
+        }, function(choice)
+          if choice then
+            vulture_dead_code_quickfix(choice.confidence)
+          end
+        end)
+      end
+
+      -- Keymaps for vulture dead code analysis
+      vim.keymap.set('n', '<leader>fd', function() vulture_dead_code_quickfix() end, { desc = '[F]ind [D]ead code (70% confidence)' })
+      vim.keymap.set('n', '<leader>fD', vulture_analysis_levels, { desc = '[F]ind [D]ead code (select confidence)' })
     end,
   },
 }
