@@ -3,6 +3,7 @@ vim.lsp.enable {
   'ty',
   'lua_ls',
   'jedi_language_server',
+  'basedpyright',
 }
 
 vim.diagnostic.config {

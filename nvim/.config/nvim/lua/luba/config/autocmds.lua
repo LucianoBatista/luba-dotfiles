@@ -11,13 +11,37 @@ vim.api.nvim_create_autocmd('LspAttach', {
     local client = vim.lsp.get_client_by_id(event.data.client_id)
     assert(client, 'LSP client not found')
 
-    -- Disable Ruff hover in favor of Pyright
+    -- Disable Ruff hover and navigation in favor of Jedi
     if client.name == 'ruff' then
       client.server_capabilities.hoverProvider = false
+      client.server_capabilities.definitionProvider = false
+      client.server_capabilities.referencesProvider = false
+      client.server_capabilities.declarationProvider = false
+      client.server_capabilities.typeDefinitionProvider = false
+      client.server_capabilities.implementationProvider = false
     end
 
     if client.name == 'ty' then
       client.server_capabilities.hoverProvider = false
+      client.server_capabilities.definitionProvider = false
+      client.server_capabilities.referencesProvider = false
+      client.server_capabilities.declarationProvider = false
+      client.server_capabilities.typeDefinitionProvider = false
+      client.server_capabilities.implementationProvider = false
+    end
+
+    -- Use basedpyright only for completions with auto-import
+    if client.name == 'basedpyright' then
+      client.server_capabilities.hoverProvider = false
+      client.server_capabilities.definitionProvider = false
+      client.server_capabilities.referencesProvider = false
+      client.server_capabilities.declarationProvider = false
+      client.server_capabilities.typeDefinitionProvider = false
+      client.server_capabilities.implementationProvider = false
+      client.server_capabilities.documentSymbolProvider = false
+      client.server_capabilities.workspaceSymbolProvider = false
+      client.server_capabilities.renameProvider = false
+      -- Keep completionProvider enabled for auto-imports
     end
 
     ---@diagnostic disable-next-line: inject-field

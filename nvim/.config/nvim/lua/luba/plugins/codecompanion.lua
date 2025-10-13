@@ -36,15 +36,25 @@ return {
         },
       },
       adapters = {
-        copilot = function()
-          return require('codecompanion.adapters').extend('copilot', {
-            schema = {
-              model = {
-                default = 'claude-sonnet-4',
+        -- copilot = function()
+        --   return require('codecompanion.adapters').extend('copilot', {
+        --     schema = {
+        --       model = {
+        --         default = 'claude-sonnet-4',
+        --       },
+        --     },
+        --   })
+        -- end,
+        --
+        acp = {
+          claude_code = function()
+            return require('codecompanion.adapters').extend('claude_code', {
+              env = {
+                CLAUDE_CODE_OAUTH_TOKEN = vim.env.CC_OAUTH_TOKEN,
               },
-            },
-          })
-        end,
+            })
+          end,
+        },
       },
       prompt_library = {
         ['Docs Google Style'] = {
