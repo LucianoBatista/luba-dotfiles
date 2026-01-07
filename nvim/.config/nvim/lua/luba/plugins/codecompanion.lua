@@ -48,9 +48,13 @@ return {
         --
         acp = {
           claude_code = function()
+            local token = os.getenv 'CC_OAUTH_TOKEN' or vim.env.CC_OAUTH_TOKEN
+            if not token then
+              vim.notify('CC_OAUTH_TOKEN not found in environment', vim.log.levels.ERROR)
+            end
             return require('codecompanion.adapters').extend('claude_code', {
               env = {
-                CLAUDE_CODE_OAUTH_TOKEN = vim.env.CC_OAUTH_TOKEN,
+                CLAUDE_CODE_OAUTH_TOKEN = token,
               },
             })
           end,
@@ -96,6 +100,7 @@ return {
             ---@type string
             user = 'Luba',
           },
+          adapter = 'claude_code',
           keymaps = {
             regenerate = {
               modes = {

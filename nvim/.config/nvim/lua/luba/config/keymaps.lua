@@ -4,6 +4,7 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 vim.keymap.set('i', '<C-c>', '<Esc>')
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<leader>td', '<cmd>LspToggleDiagnostics<CR>', { desc = '[T]oggle [D]iagnostics' })
 vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv")
 
 -- Python execution on quarto files

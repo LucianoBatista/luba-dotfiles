@@ -29,3 +29,30 @@ vim.diagnostic.config {
     },
   },
 }
+
+-- Toggle diagnostics on/off
+local diagnostics_enabled = true
+
+local function toggle_diagnostics()
+  diagnostics_enabled = not diagnostics_enabled
+  if diagnostics_enabled then
+    vim.diagnostic.config {
+      virtual_text = true,
+      underline = true,
+      signs = true,
+    }
+    vim.notify('Diagnostics enabled', vim.log.levels.INFO)
+  else
+    vim.diagnostic.config {
+      virtual_text = false,
+      underline = false,
+      signs = false,
+    }
+    vim.notify('Diagnostics disabled', vim.log.levels.INFO)
+  end
+end
+
+-- Create user command for toggling diagnostics
+vim.api.nvim_create_user_command('LspToggleDiagnostics', toggle_diagnostics, {
+  desc = 'Toggle LSP diagnostics on/off',
+})
