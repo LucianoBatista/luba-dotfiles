@@ -6,9 +6,6 @@ return {
     'ravitemer/mcphub.nvim',
     'j-hui/fidget.nvim',
   },
-  -- sources = {
-  --   per_filetype = { codecompanion = { 'codecompanion' } },
-  -- },
   opts = function()
     -- Helper function to read markdown files
     local function read_prompt_file(filename)
@@ -29,28 +26,25 @@ return {
         mcphub = {
           callback = 'mcphub.extensions.codecompanion',
           opts = {
-            make_vars = true,
+            make_vars = false, -- disabled: mcphub#275 - crashes with codecompanion v19+ (variables → editor_context rename)
             make_slash_commands = true,
             show_result_in_chat = true,
           },
         },
       },
       adapters = {
-        -- copilot = function()
-        --   return require('codecompanion.adapters').extend('copilot', {
-        --     schema = {
-        --       model = {
-        --         default = 'claude-sonnet-4',
-        --       },
-        --     },
-        --   })
-        -- end,
-        --
         acp = {
           claude_code = function()
-            local token = os.getenv 'CC_OAUTH_TOKEN' or vim.env.CC_OAUTH_TOKEN
-            if not token then
-              vim.notify('CC_OAUTH_TOKEN not found in environment', vim.log.levels.ERROR)
+            -- Read OAuth token from Claude CLI credentials
+            local creds_path = vim.fn.expand '~/.claude/.credentials.json'
+            local f = io.open(creds_path, 'r')
+            local token
+            if f then
+              local ok, creds = pcall(vim.json.decode, f:read '*all')
+              f:close()
+              if ok and creds.claudeAiOauth then
+                token = creds.claudeAiOauth.accessToken
+              end
             end
             return require('codecompanion.adapters').extend('claude_code', {
               env = {
@@ -62,9 +56,9 @@ return {
       },
       prompt_library = {
         ['Docs Google Style'] = {
-          strategy = 'inline',
+          interaction = 'inline',
           description = 'Add docstring in the format of Google Style',
-          opts = { is_slash_cmd = true, short_name = 'docs' },
+          opts = { is_slash_cmd = true, alias = 'docs' },
           prompts = {
             {
               role = 'system',
@@ -74,9 +68,9 @@ return {
           },
         },
         ['Code Review'] = {
-          strategy = 'chat',
+          interaction = 'chat',
           description = 'Review my code please',
-          opts = { is_slash_cmd = true, short_name = 'review' },
+          opts = { is_slash_cmd = true, alias = 'review' },
           prompts = {
             {
               role = 'system',
@@ -87,7 +81,7 @@ return {
         },
       },
 
-      strategies = {
+      interactions = {
         chat = {
           roles = {
             ---The header name for the LLM's messages
@@ -107,10 +101,15 @@ return {
                 n = '<localleader>r',
               },
             },
-            close = {
+            stop = {
               modes = {
                 n = 'q',
-                i = '<C-S-x>',
+              },
+            },
+            close = {
+              modes = {
+                n = '<C-c>',
+                i = '<C-c>',
               },
             },
             clear = {
@@ -123,12 +122,12 @@ return {
                 n = '<localleader>y',
               },
             },
-            pin = {
+            buffer_sync_all = {
               modes = {
                 n = '<localleader>p',
               },
             },
-            watch = {
+            buffer_sync_diff = {
               modes = {
                 n = '<localleader>w',
               },
@@ -138,8 +137,32 @@ return {
                 n = '<localleader>c',
               },
             },
+            -- ACP tool approval keymaps
+            _acp_allow_always = {
+              modes = {
+                n = 'g1',
+              },
+            },
+            _acp_allow_once = {
+              modes = {
+                n = 'g2',
+              },
+            },
+            _acp_reject_once = {
+              modes = {
+                n = 'g3',
+              },
+            },
+            _acp_reject_always = {
+              modes = {
+                n = 'g4',
+              },
+            },
           },
         },
+        inline = { adapter = 'claude_code' },
+        cmd = { adapter = 'claude_code' },
+        background = { adapter = 'claude_code' },
       },
     }
   end,
@@ -176,3 +199,4 @@ return {
     })
   end,
 }
+
