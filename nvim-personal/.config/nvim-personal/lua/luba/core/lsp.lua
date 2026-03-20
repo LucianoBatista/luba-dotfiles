@@ -2,7 +2,6 @@ vim.lsp.enable {
   'ruff',
   'ty',
   'lua_ls',
-  'jedi_language_server',
   'basedpyright',
 }
 
